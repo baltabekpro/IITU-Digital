@@ -24,7 +24,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden", className)}>
+    <div className={cn("bg-white dark:bg-slate-900 rounded-[16px] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] border border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-300", className)}>
       <div 
         className={cn(
           "flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors",
@@ -34,26 +34,26 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       >
         <div className="flex items-center gap-3">
           {typeof title === 'string' ? (
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{title}</h3>
           ) : (
             title
           )}
         </div>
         <div className="flex items-center gap-4">
           {rightElement && <div onClick={(e) => e.stopPropagation()}>{rightElement}</div>}
-          <div className="text-slate-400">
-            {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          <div className="text-slate-400 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </div>
         </div>
       </div>
       
       <div 
         className={cn(
-          "transition-all duration-300 ease-in-out overflow-hidden",
-          isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          "transition-all duration-500 ease-in-out overflow-hidden",
+          isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
         )}
       >
-        <div className={cn("p-6 pt-0 border-t border-slate-50 dark:border-slate-800/50", contentClassName)}>
+        <div className={cn("p-6 pt-0 border-t border-slate-100 dark:border-slate-800/50", contentClassName)}>
           {children}
         </div>
       </div>
