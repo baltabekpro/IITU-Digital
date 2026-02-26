@@ -57,6 +57,8 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+    --shadow-diffuse: 0 40px 40px -15px rgba(0,0,0,0.03);
+    --shadow-diffuse-dark: 0 40px 40px -15px rgba(0,0,0,0.2);
 }
 
 :root {
@@ -144,8 +146,42 @@
   .bento-card {
     @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] rounded-[16px] transition-all duration-300;
   }
+
+  .diffuse-shadow {
+    @apply shadow-diffuse dark:shadow-diffuse-dark;
+  }
+
+  .layered-card {
+    @apply bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-diffuse dark:shadow-diffuse-dark rounded-[24px] transition-all duration-500;
+  }
   
   .crimson-gradient {
     @apply bg-gradient-to-r from-[#8B0000] to-[#E11D48];
+  }
+
+  .pulsate {
+    animation: pulsate 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulsate {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .frosted-glass {
+    @apply bg-white/20 dark:bg-slate-900/20 backdrop-blur-md border border-white/30 dark:border-white/10;
+  }
+
+  .segmented-control-active {
+    @apply bg-white dark:bg-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300;
   }
 }
