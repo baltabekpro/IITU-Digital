@@ -192,4 +192,20 @@
   .skeleton {
     @apply animate-pulse bg-slate-200 dark:bg-slate-800 rounded;
   }
+
+  .glass-sidebar {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50;
+  }
+
+  .message-bubble-me {
+    @apply rounded-[16px] rounded-br-[2px];
+  }
+
+  .message-bubble-other {
+    @apply rounded-[16px] rounded-bl-[2px];
+  }
+
+  .crimson-gradient {
+    @apply bg-gradient-to-br from-[#E11D48] to-[#9F1239];
+  }
 }

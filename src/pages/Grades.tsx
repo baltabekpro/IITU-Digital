@@ -1,244 +1,363 @@
-import { useState } from 'react';
-import { Search, Bell, Settings, TrendingUp, Download, Info, CheckCircle, AlertTriangle, ArrowRight, Users } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { 
+  Search, 
+  TrendingUp, 
+  Download, 
+  Info, 
+  Users, 
+  ChevronRight, 
+  Filter,
+  MoreHorizontal,
+  Edit2,
+  CheckCircle2,
+  Clock
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import Header from '@/components/Header';
 import { toast } from 'sonner';
-import CollapsibleSection from '@/components/CollapsibleSection';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '@/lib/utils';
+import { 
+  Radar, 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip
+} from 'recharts';
+
+interface StudentGrade {
+  id: number;
+  name: string;
+  idNum: string;
+  group: string;
+  avatar: string;
+  rk1: number;
+  rk2: number;
+  exam: number | null;
+  total: number;
+  grade: string;
+  attendance: number;
+}
+
+const RADAR_DATA = [
+  { subject: 'Theory', A: 85, fullMark: 100 },
+  { subject: 'Code', A: 92, fullMark: 100 },
+  { subject: 'Logic', A: 78, fullMark: 100 },
+  { subject: 'Design', A: 65, fullMark: 100 },
+  { subject: 'Soft Skills', A: 88, fullMark: 100 },
+];
+
+const GPA_DATA = [
+  { name: '1/24', gpa: 3.2 },
+  { name: '2/24', gpa: 3.4 },
+  { name: '1/25', gpa: 3.55 },
+  { name: '2/25', gpa: 3.75 },
+];
 
 export default function Grades() {
-  const [semester, setSemester] = useState('2025-2026, Осенний семестр');
   const { role } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterAttendance, setFilterAttendance] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState('Алгоритмы и структуры данных');
 
-  const handleDownload = () => {
-    toast.success(role === 'teacher' ? 'Ведомость скачивается...' : 'Транскрипт скачивается...');
-  };
-
-  const gradesData: Record<string, any[]> = {
-    '2025-2026, Осенний семестр': [
-      { id: 1, name: 'Алгоритмы и структуры данных', credits: 5, rk1: 95, rk2: 88, exam: 90, total: 91, grade: 'A-' },
-      { id: 2, name: 'Базы данных', credits: 6, rk1: 82, rk2: 75, exam: 80, total: 79, grade: 'B+' },
-      { id: 3, name: 'Мобильная разработка', credits: 4, rk1: 90, rk2: 92, exam: 85, total: 89, grade: 'A-' },
-      { id: 4, name: 'Английский язык', credits: 3, rk1: 100, rk2: 95, exam: 98, total: 97, grade: 'A' },
-      { id: 5, name: 'Философия', credits: 2, rk1: 70, rk2: 80, exam: 75, total: 75, grade: 'B' },
-    ],
-  };
-
-  const studentGrades = [
-    { id: 1, name: 'Иванов Алмат', idNum: '29402', rk1: 95, rk2: 88, exam: 90, total: 91, grade: 'A-' },
-    { id: 2, name: 'Петров Сергей', idNum: '29405', rk1: 82, rk2: 75, exam: 80, total: 79, grade: 'B+' },
-    { id: 3, name: 'Ахметов Мурат', idNum: '29410', rk1: 90, rk2: 92, exam: 85, total: 89, grade: 'A-' },
-    { id: 4, name: 'Сидорова Анна', idNum: '29415', rk1: 100, rk2: 95, exam: 98, total: 97, grade: 'A' },
-    { id: 5, name: 'Кузнецов Олег', idNum: '29420', rk1: 70, rk2: 80, exam: 75, total: 75, grade: 'B' },
+  const students: StudentGrade[] = [
+    { id: 1, name: 'Иванов Алмат', idNum: '29402', group: 'CS-2104K', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Almat', rk1: 95, rk2: 88, exam: 90, total: 91, grade: 'A-', attendance: 98 },
+    { id: 2, name: 'Петров Сергей', idNum: '29405', group: 'CS-2104K', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sergey', rk1: 82, rk2: 75, exam: 80, total: 79, grade: 'B+', attendance: 85 },
+    { id: 3, name: 'Ахметов Мурат', idNum: '29410', group: 'CS-2104K', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Murat', rk1: 90, rk2: 92, exam: 85, total: 89, grade: 'A-', attendance: 92 },
+    { id: 4, name: 'Сидорова Анна', idNum: '29415', group: 'CS-2104K', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anna', rk1: 100, rk2: 95, exam: 98, total: 97, grade: 'A', attendance: 100 },
+    { id: 5, name: 'Кузнецов Олег', idNum: '29420', group: 'CS-2104K', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Oleg', rk1: 70, rk2: 80, exam: 75, total: 75, grade: 'B', attendance: 70 },
   ];
 
-  const currentGrades = gradesData[semester] || [];
+  const filteredStudents = useMemo(() => {
+    return students.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.idNum.includes(searchQuery);
+      const matchesAttendance = filterAttendance ? s.attendance < 90 : true;
+      return matchesSearch && matchesAttendance;
+    });
+  }, [searchQuery, filterAttendance]);
+
+  const handleGradeChange = (studentName: string) => {
+    toast.success(`Оценка для ${studentName} успешно сохранена`, {
+      icon: <CheckCircle2 className="text-emerald-500" size={18} />
+    });
+  };
+
+  const getGradeColor = (grade: string) => {
+    if (grade.startsWith('A')) return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    if (grade.startsWith('B')) return 'bg-amber-50 text-amber-700 border-amber-100';
+    return 'bg-slate-50 text-slate-700 border-slate-100';
+  };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FB] dark:bg-slate-950">
       <Header 
         userName={role === 'teacher' ? "Абдикерим Н. Б." : "Иванов А. Б."} 
         userGroup={role === 'teacher' ? "Преподаватель" : "CS-2104K"} 
         userAvatar={role === 'teacher' ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher1" : "https://api.dicebear.com/7.x/avataaars/svg?seed=Almat"} 
       />
+      
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8 max-w-7xl mx-auto space-y-8 w-full">
-          {/* Page Title and Filters */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div>
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {role === 'teacher' ? 'Электронный журнал' : 'Оценки и успеваемость'}
-              </h2>
-              <p className="text-slate-500 mt-1">
-                {role === 'teacher' ? 'Выставление оценок и мониторинг успеваемости студентов' : 'Просмотр текущих достижений и академического прогресса'}
-              </p>
-            </div>
-          <div className="flex items-center gap-3">
-            {role === 'teacher' && (
-              <select 
-                className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-              >
-                <option>Алгоритмы и структуры данных</option>
-                <option>Базы данных</option>
-                <option>Мобильная разработка</option>
-              </select>
-            )}
-            <select 
-              className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
+        <div className="p-10 max-w-[1600px] mx-auto space-y-10">
+          
+          {/* Analytics Scoreboard */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <motion.div 
+              whileHover={{ y: -4 }}
+              className="glass p-6 rounded-2xl border border-white/20 shadow-diffuse flex items-center justify-between"
             >
-              <option>2025-2026, Осенний семестр</option>
-              <option>2024-2025, Весенний семестр</option>
-            </select>
-            <Button className="gap-2 font-semibold shadow-lg shadow-brand-500/20" onClick={handleDownload}>
-              <Download size={18} /> {role === 'teacher' ? 'Скачать ведомость' : 'Скачать транскрипт'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6 flex items-center justify-between h-full">
               <div>
-                <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                  {role === 'teacher' ? 'Средний балл группы' : 'Текущий GPA'}
-                </p>
-                <div className="flex items-baseline gap-3 mt-2">
-                  <h3 className="text-4xl font-black text-slate-900 dark:text-white">{role === 'teacher' ? '84.2' : '3.75'}</h3>
-                  <span className="bg-brand-50 text-brand-600 px-3 py-1 rounded-full text-xs font-bold">
-                    {role === 'teacher' ? 'Хорошо' : 'A- (Excellent)'}
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2">Средний балл</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white">84.2</h3>
+                  <span className="text-xs font-bold text-emerald-500 flex items-center gap-0.5">
+                    <TrendingUp size={14} /> +2.4%
                   </span>
                 </div>
               </div>
-              <div className="size-14 rounded-full bg-brand-50 flex items-center justify-center">
-                <TrendingUp className="text-brand-600" size={28} />
+              <div className="size-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
+                <TrendingUp size={24} />
               </div>
-            </CardContent>
-          </Card>
+            </motion.div>
 
-          <Card>
-            <CardContent className="p-6 h-full flex flex-col justify-center">
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                {role === 'teacher' ? 'Посещаемость' : 'Накоплено кредитов'}
-              </p>
-              <div className="mt-4">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-2xl font-bold">{role === 'teacher' ? '92%' : '87 / 240'}</span>
-                  <span className="text-sm font-semibold text-brand-600">{role === 'teacher' ? '+2%' : '36%'}</span>
-                </div>
-                <Progress value={role === 'teacher' ? 92 : 36} className="h-3 bg-slate-100" indicatorColor="bg-brand-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 flex items-center gap-6 h-full">
-              <div className={`size-16 rounded-xl ${role === 'teacher' ? 'bg-brand-500/10' : 'bg-amber-500/10'} flex items-center justify-center shrink-0`}>
-                {role === 'teacher' ? <Users className="text-brand-600" size={32} /> : <AlertTriangle className="text-amber-500" size={32} />}
-              </div>
+            <motion.div 
+              whileHover={{ y: -4 }}
+              onClick={() => setFilterAttendance(!filterAttendance)}
+              className={cn(
+                "glass p-6 rounded-2xl border border-white/20 shadow-diffuse flex items-center justify-between cursor-pointer transition-all",
+                filterAttendance && "ring-2 ring-brand-500 bg-brand-50/10"
+              )}
+            >
               <div>
-                <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                  {role === 'teacher' ? 'Студентов' : 'Долги'}
-                </p>
-                <h3 className="text-2xl font-bold mt-1">{role === 'teacher' ? '45 человек' : '0 Дисциплин'}</h3>
-                <p className={`text-xs font-medium flex items-center mt-1 ${role === 'teacher' ? 'text-brand-600' : 'text-green-600'}`}>
-                  <CheckCircle size={14} className="mr-1" /> {role === 'teacher' ? 'Все активны' : 'Все вовремя'}
-                </p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2">Посещаемость</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white">92%</h3>
+                  <span className="text-[10px] font-bold text-slate-400">Нажмите для фильтра</span>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="size-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
+                <Clock size={24} />
+              </div>
+            </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Grades Table */}
-          <CollapsibleSection 
-            title={role === 'teacher' ? `Журнал: ${selectedCourse}` : "Результаты текущего семестра"} 
-            className="lg:col-span-8" 
-            contentClassName="p-0 overflow-x-auto"
-            rightElement={
-              <a href="#" className="text-brand-600 text-sm font-semibold hover:underline flex items-center gap-1">
-                {role === 'teacher' ? 'Настройка критериев' : 'История оценок'} <ArrowRight size={14} />
-              </a>
-            }
-          >
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-medium border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-4 font-semibold">{role === 'teacher' ? 'Студент' : 'Дисциплина'}</th>
-                  <th className="px-4 py-4 font-semibold text-center">{role === 'teacher' ? 'ID' : 'Кред.'}</th>
-                  <th className="px-4 py-4 font-semibold">РК1</th>
-                  <th className="px-4 py-4 font-semibold">РК2</th>
-                  <th className="px-4 py-4 font-semibold">Экз.</th>
-                  <th className="px-4 py-4 font-semibold text-right">Итог %</th>
-                  <th className="px-4 py-4 font-semibold text-center">Буква</th>
-                  <th className="px-6 py-4 font-semibold text-center">Действие</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(role === 'teacher' ? studentGrades : currentGrades).map((item) => (
-                  <tr key={item.id} className={item.grade.startsWith('A') ? 'bg-green-50/30' : item.grade.startsWith('B') ? 'bg-yellow-50/30' : ''}>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900 dark:text-white">{item.name}</p>
-                      <p className="text-xs text-slate-500">{role === 'teacher' ? 'CS-2104K' : 'Преподаватель'}</p>
-                    </td>
-                    <td className="px-4 py-4 text-center font-medium">{role === 'teacher' ? item.idNum : item.credits}</td>
-                    <td className="px-4 py-4 font-semibold">{item.rk1}</td>
-                    <td className="px-4 py-4 font-semibold">{item.rk2}</td>
-                    <td className="px-4 py-4 font-semibold text-slate-400">{item.exam || '—'}</td>
-                    <td className="px-4 py-4 text-right font-bold text-brand-600">{item.total}</td>
-                    <td className="px-4 py-4 text-center">
-                      <span className={`px-2.5 py-1 rounded-md font-black ${item.grade.startsWith('A') ? 'bg-green-100 text-green-700' : item.grade.startsWith('B') ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-700'}`}>
-                        {item.grade}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Button variant="ghost" size="sm" className="font-bold text-brand-600">
-                        {role === 'teacher' ? 'Изменить' : 'Детали'}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CollapsibleSection>
-
-          {/* Right Sidebar Charts */}
-          <div className="lg:col-span-4 space-y-8">
-            <CollapsibleSection 
-              title="Баланс компетенций" 
-              rightElement={<Info size={16} className="text-slate-400 cursor-help" />}
+            <motion.div 
+              whileHover={{ y: -4 }}
+              className="glass p-6 rounded-2xl border border-white/20 shadow-diffuse flex items-center justify-between"
             >
-              <div className="flex flex-col items-center">
-                <div className="aspect-square w-full relative flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-lg overflow-hidden p-4">
-                  <svg className="w-full h-full p-4 overflow-visible" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" className="text-slate-300 dark:text-slate-700"></circle>
-                    <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" className="text-slate-300 dark:text-slate-700"></circle>
-                    <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" className="text-slate-300 dark:text-slate-700"></circle>
-                    <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-slate-300 dark:text-slate-700"></path>
-                    <path d="M50 15 L80 45 L55 85 L20 55 Z" fill="rgba(37, 99, 235, 0.2)" stroke="#2563eb" strokeWidth="2"></path>
-                    <text x="50" y="8" textAnchor="middle" className="text-[4px] fill-slate-500 font-bold uppercase">Theory</text>
-                    <text x="96" y="52" textAnchor="start" className="text-[4px] fill-slate-500 font-bold uppercase">Code</text>
-                    <text x="50" y="96" textAnchor="middle" className="text-[4px] fill-slate-500 font-bold uppercase">Logic</text>
-                    <text x="4" y="52" textAnchor="end" className="text-[4px] fill-slate-500 font-bold uppercase">Design</text>
-                  </svg>
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2">Активность</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white">45</h3>
+                  <span className="text-[10px] font-bold text-slate-400">Студентов в группе</span>
                 </div>
-                <p className="mt-4 text-xs text-slate-500 text-center">Анализ успеваемости по ключевым направлениям курса</p>
               </div>
-            </CollapsibleSection>
+              <div className="size-12 rounded-xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600">
+                <Users size={24} />
+              </div>
+            </motion.div>
+          </div>
 
-            <CollapsibleSection 
-              title="Динамика GPA" 
-              rightElement={<span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">+0.12%</span>}
-            >
-              <div className="h-32 flex items-end justify-between gap-1 px-2">
-                <div className="flex-1 flex flex-col items-center group">
-                  <div className="w-full bg-brand-100 rounded-t-sm h-[65%] group-hover:bg-brand-200 transition-colors"></div>
-                  <span className="text-[10px] text-slate-400 mt-2 font-bold">1/24</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {/* Main Gradebook */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Action Bar */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 relative max-w-md">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Input 
+                    placeholder="Поиск студента по имени или ID..." 
+                    className="pl-11 h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl shadow-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-                <div className="flex-1 flex flex-col items-center group">
-                  <div className="w-full bg-brand-100 rounded-t-sm h-[72%] group-hover:bg-brand-200 transition-colors"></div>
-                  <span className="text-[10px] text-slate-400 mt-2 font-bold">2/24</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center group">
-                  <div className="w-full bg-brand-100 rounded-t-sm h-[85%] group-hover:bg-brand-200 transition-colors"></div>
-                  <span className="text-[10px] text-slate-400 mt-2 font-bold">1/25</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center group">
-                  <div className="w-full bg-brand-600 rounded-t-sm h-[94%] shadow-lg shadow-brand-500/30"></div>
-                  <span className="text-[10px] text-brand-600 mt-2 font-extrabold uppercase">Текущ</span>
+                <div className="flex items-center gap-3">
+                  <select 
+                    className="h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 text-sm font-bold focus:outline-none shadow-sm"
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                  >
+                    <option>Алгоритмы и структуры данных</option>
+                    <option>Базы данных</option>
+                    <option>Мобильная разработка</option>
+                  </select>
+                  <Button variant="ghost" className="h-12 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold gap-2">
+                    <Download size={18} />
+                    Ведомость
+                  </Button>
                 </div>
               </div>
-            </CollapsibleSection>
+
+              {/* Table */}
+              <div className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-diffuse overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                      <th className="px-8 py-4 text-left text-[11px] font-black text-slate-500 uppercase tracking-widest">Студент</th>
+                      <th className="px-4 py-4 text-center text-[11px] font-black text-slate-500 uppercase tracking-widest">РК1</th>
+                      <th className="px-4 py-4 text-center text-[11px] font-black text-slate-500 uppercase tracking-widest">РК2</th>
+                      <th className="px-4 py-4 text-center text-[11px] font-black text-slate-500 uppercase tracking-widest">Экз.</th>
+                      <th className="px-4 py-4 text-center text-[11px] font-black text-slate-500 uppercase tracking-widest">Итог</th>
+                      <th className="px-4 py-4 text-center text-[11px] font-black text-slate-500 uppercase tracking-widest">Оценка</th>
+                      <th className="px-8 py-4 text-right text-[11px] font-black text-slate-500 uppercase tracking-widest">Действие</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                    <AnimatePresence mode="popLayout">
+                      {filteredStudents.map((student) => (
+                        <motion.tr 
+                          key={student.id}
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                        >
+                          <td className="px-8 py-4">
+                            <div className="flex items-center gap-4">
+                              <img src={student.avatar} alt={student.name} className="size-10 rounded-full bg-slate-100" />
+                              <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{student.name}</h4>
+                                <p className="text-[11px] text-slate-400 font-medium mt-0.5">ID: {student.idNum} • {student.group}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <div className="inline-flex items-center justify-center size-10 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer font-bold text-slate-700 dark:text-slate-300">
+                              {student.rk1}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <div className="inline-flex items-center justify-center size-10 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer font-bold text-slate-700 dark:text-slate-300">
+                              {student.rk2}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <div className="inline-flex items-center justify-center size-10 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer font-bold text-slate-400">
+                              {student.exam || '—'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center font-black text-brand-600">
+                            {student.total}
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <Badge className={cn(
+                              "px-3 py-1 rounded-lg border font-black text-[12px] shadow-sm",
+                              getGradeColor(student.grade)
+                            )}>
+                              {student.grade}
+                            </Badge>
+                          </td>
+                          <td className="px-8 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="icon" className="rounded-xl hover:text-brand-600 hover:bg-brand-50" onClick={() => handleGradeChange(student.name)}>
+                                <Edit2 size={16} />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="rounded-xl">
+                                <MoreHorizontal size={16} />
+                              </Button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Analytical Sidebar */}
+            <div className="lg:col-span-4 space-y-8">
+              {/* Competency Radar */}
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-diffuse">
+                <div className="flex items-center justify-between mb-8">
+                  <h4 className="text-[14px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Баланс компетенций</h4>
+                  <Info size={16} className="text-slate-300" />
+                </div>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={RADAR_DATA}>
+                      <PolarGrid stroke="#E2E8F0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }} />
+                      <Radar
+                        name="Student"
+                        dataKey="A"
+                        stroke="#E11D48"
+                        fill="#E11D48"
+                        fillOpacity={0.2}
+                        dot={{ r: 4, fill: '#E11D48', strokeWidth: 2, stroke: '#fff' }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-center text-[11px] text-slate-400 font-medium mt-4 leading-relaxed px-4">
+                  Анализ успеваемости по ключевым направлениям курса на основе текущих оценок
+                </p>
+              </div>
+
+              {/* GPA Dynamics */}
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-[24px] border border-slate-200 dark:border-slate-800 shadow-diffuse">
+                <div className="flex items-center justify-between mb-8">
+                  <h4 className="text-[14px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Динамика GPA</h4>
+                  <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black text-[10px]">+0.12</Badge>
+                </div>
+                <div className="h-[180px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={GPA_DATA}>
+                      <defs>
+                        <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#E11D48" stopOpacity={0.1}/>
+                          <stop offset="95%" stopColor="#E11D48" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="name" hide />
+                      <YAxis hide domain={[0, 4]} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        itemStyle={{ fontWeight: 800, color: '#E11D48' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="gpa" 
+                        stroke="#E11D48" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorGpa)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-between mt-4">
+                  {GPA_DATA.map((d, i) => (
+                    <span key={i} className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{d.name}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Filters */}
+              <div className="bg-slate-900 p-8 rounded-[24px] text-white space-y-6">
+                <h4 className="text-[12px] font-black uppercase tracking-widest opacity-60">Быстрые фильтры</h4>
+                <div className="space-y-3">
+                  <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                    <span className="text-sm font-bold">Успеваемость &lt; 70%</span>
+                    <ChevronRight size={16} className="opacity-40" />
+                  </button>
+                  <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                    <span className="text-sm font-bold">Пропуски &gt; 3</span>
+                    <ChevronRight size={16} className="opacity-40" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
