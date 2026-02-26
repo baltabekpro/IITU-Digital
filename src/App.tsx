@@ -14,6 +14,7 @@ import Grades from './pages/Grades';
 import Chat from './pages/Chat';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
+import Students from './pages/Students';
 import Login from './pages/Login';
 import CourseDetail from './pages/CourseDetail';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -65,6 +66,7 @@ export default function App() {
             <Route path="schedule" element={<Schedule />} />
             <Route path="grades" element={<Grades />} />
             <Route path="chat" element={<Chat />} />
+            <Route path="students" element={<Students />} />
           </Route>
 
           {/* Admin Routes */}
@@ -74,6 +76,7 @@ export default function App() {
             </ProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="students" element={<Students />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

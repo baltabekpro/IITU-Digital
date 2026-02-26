@@ -184,4 +184,12 @@
   .segmented-control-active {
     @apply bg-white dark:bg-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-300;
   }
+
+  .soft-ui-card {
+    @apply bg-white dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 rounded-[12px] transition-all duration-300;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-slate-200 dark:bg-slate-800 rounded;
+  }
 }
