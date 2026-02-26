@@ -15,6 +15,7 @@ import Chat from './pages/Chat';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import Students from './pages/Students';
+import TeacherProfile from './pages/TeacherProfile';
 import Login from './pages/Login';
 import CourseDetail from './pages/CourseDetail';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="grades" element={<Grades />} />
             <Route path="chat" element={<Chat />} />
             <Route path="students" element={<Students />} />
+            <Route path="profile" element={<TeacherProfile />} />
           </Route>
 
           {/* Admin Routes */}
